@@ -1,0 +1,163 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 2rem;
+    background: #eef1f5;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.container {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    flex: 1 1 300px;
+    display: flex;
+    flex-direction: column;
+    max-height: auto;
+    overflow-y: auto;
+}
+
+h2, h3 {
+    color: #0078d4;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    border-bottom: 2px solid #0078d4;
+    padding-bottom: 0.5rem;
+    text-align: center;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0 0 1rem 0;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    max-height: 250px;
+}
+
+li {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid #eee;
+    cursor: default;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+.message {
+    color: #d00;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.groups-list {
+    min-width: 220px;
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+}
+
+.groups-list a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #0078d4;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+}
+
+.groups-list a:hover,
+.groups-list a.selected {
+    background: #0078d4;
+    color: white;
+}
+
+/* Flexbox für die beiden Dropdown-Formulare */
+.add-remove-forms {
+    display: flex;
+    width: auto;
+    height: 200px;
+    overflow-y: auto;
+    gap: 1rem;
+    flex-wrap: wrap; /* Falls Bildschirm zu klein */
+}
+
+/* Jede Form gleichmäßig aufteilen */
+form.form-section {
+    flex: 1 1 1 50%; /* zwei Spalten */
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Labels */
+form.form-section label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+/* Dropdowns */
+select[multiple] {
+    flex: 1 1 50%; /* füllt verfügbaren Platz */
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    padding: 0.3rem;
+    background: white;
+    resize: none;
+    user-select: none;
+    flex-wrap: nowrap;
+}
+
+/* Buttons */
+button {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #0078d4;
+    color: white;
+    transition: background-color 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: #005ea2;
+}
+
+/* Button für Löschen */
+form.delete-group {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+form.delete-group button {
+    background-color: #d9534f;
+}
+
+form.delete-group button:hover {
+    background-color: #b52b27;
+}
+
+form.rename-group {
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+form.rename-group input[type="text"] {
+    width: 100%; /* füllt nur die Form aus */
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+}

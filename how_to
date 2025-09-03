@@ -1,0 +1,223 @@
+# HOWTO: AD Webinterface (PHP + LDAPS) — ldap_tool_v3
+
+> **Kurzfassung (DE):** Dieses Dokument erklärt, wie du das Projekt lokal/in einem Testnetz aufsetzt, dich via **LDAPS** anmeldest und warum **nur bestimmte AD‑Gruppen** Zugriff erhalten.  
+> **Quick Summary (EN):** This guide shows how to set up the project, enable **LDAPS** login, and enforce access for **specific AD groups only**.
+
+---
+
+## Inhaltsverzeichnis / Table of Contents
+1. Voraussetzungen / Prerequisites  
+2. Projektstruktur / Project Structure  
+3. Installation (Docker & Manuell) / Setup (Docker & Manual)  
+4. Login & Zugriff / Login & Access (Group-Based) ✅  
+5. Funktionen / Features  
+6. Screenshots (Empfehlung) / Screenshots (Recommended)  
+7. Sicherheit / Security Notes  
+8. Troubleshooting  
+9. Lizenz / License
+
+---
+
+## 1) Voraussetzungen / Prerequisites
+
+**AD / LDAP**
+- Windows Server **Active Directory** mit **LDAPS (636)** aktiviert und Zertifikat installiert
+- Service-Account mit minimalen Rechten (User/Groups/OUs: create/modify/move/delete in definierten OUs)
+
+**Host**
+- Docker (empfohlen) oder LAMP/LEMP mit **PHP 8** und **php-ldap**
+- Git
+
+**Sicherheit**
+- Keine echten Produktivdaten verwenden (Nutze `example.local`, Fake-IPs, Dummy-User)
+
+---
+
+## 2) Projektstruktur / Project Structure
+
+```
+ldap_tool_v3/
+├─ login.php                 # AD Login mit Gruppenprüfung
+├─ menu.php                  # Hauptmenü (Navigation)
+├─ dashboard.php             # Begrüßung / Weiterleitung
+├─ ad_browser.php            # Benutzerliste (DataTables) + Aktionen
+├─ ad_user_action.php        # Bulk-Aktionen: enable/disable/delete/move
+├─ ad_user_create.php        # Benutzer anlegen
+├─ ad_user_edit.php          # Benutzer bearbeiten
+├─ ad_user_password(.php|_reset.php) # Passwort setzen/resetten
+├─ ad_groups.php             # Gruppen-UI (AJAX/Modals)
+├─ ad_groups_ajax.php        # Gruppen-JSON (Buttons/Actions)
+├─ ad_group_members.php      # Mitglieder lesen/hinzufügen/entfernen
+├─ ad_group_action.php       # Gruppenaktionen (Add/Remove/Rename/Delete/Move)
+├─ group_browser.php         # Gruppenliste (statisch gerendert)
+├─ ou_verwalten.php          # OU-Explorer (Create/Rename/Move/Delete)
+├─ create_group.php          # Gruppe anlegen
+├─ create_ou.php             # OU anlegen
+├─ ad_ou_list.php            # OU-Baum (JSON)
+├─ inc/
+│  ├─ ldaps_config.php       # LDAPS + AES-Entschlüsselung, Bind
+│  ├─ ldap_conn_escape.php   # connect_ldap(), ldap_escape Fallback
+│  ├─ ldap_user_create_functions.php
+│  ├─ ldap_groups_manage.php # add/remove members, helpers
+│  ├─ ldap_get_groups.php    # CN → DN Resolver
+│  └─ rename_remove_group.php# rename/delete/move group
+├─ ldap_pass.enc             # verschlüsseltes Passwort (AES-256-CBC)
+├─ dc-dwc.cer                # Zertifikat (Beispiel)
+└─ css/ …                    # Stylesheets
+```
+
+---
+
+## 3) Installation / Setup
+
+### A) Docker (empfohlen) / Docker (recommended)
+1. Repository klonen / Clone the repo
+   ```bash
+   git clone https://github.com/YOURNAME/ad-webinterface.git
+   cd ad-webinterface
+   ```
+
+2. **Secrets:** Service-Account Passwort verschlüsseln / encrypt password  
+   > (Falls nicht vorhanden) Erzeuge `ldap_pass.enc` mit deinem Passwort (nur Testumgebung!)
+   ```bash
+   php tools/encrypt.php "SuperGeheimesPW" > ldap_pass.enc
+   ```
+   Der Entschlüsselungs‑Key wird über **Environment `LDAP_KEY`** erwartet (siehe unten).
+
+3. **Environment setzen** / Set env (Docker Compose or host env)
+   ```bash
+   export LDAP_KEY="REPLACE_WITH_STRONG_KEY"
+   ```
+
+4. Docker starten / Run containers
+   ```bash
+   docker compose up -d
+   # Öffne http://localhost:8080
+   ```
+
+### B) Manuell (ohne Docker) / Manual (no Docker)
+- PHP 8, `php-ldap` aktivieren
+- Virtual Host auf das Projektverzeichnis zeigen
+- System-Env setzen: `LDAP_KEY="REPLACE_WITH_STRONG_KEY"`
+- Webserver neu starten
+
+---
+
+## 4) Login & Zugriff nur für bestimmte Gruppen / Group-Based Access ✅
+
+**Wichtig:** Zugriff erhält *nur*, wer **Mitglied einer konfigurierten AD‑Gruppe** ist.  
+Im Standard prüft `login.php` die Builtin‑Admin‑Gruppe:
+
+```php
+// login.php (Ausschnitt)
+$required_admin_group_dn = "CN=Administratoren,CN=Builtin,$base_dn";
+// Nach erfolgreichem User-Bind wird memberOf geprüft.
+// Nur wenn der DN exakt gefunden wird → Session is_admin = true.
+```
+
+### Mehrere Gruppen erlauben / Allow multiple groups
+Passe `login.php` so an, dass **mehrere DNs** erlaubt sind (OR‑Logik):
+
+```php
+$allowed_group_dns = [
+  "CN=Administratoren,CN=Builtin,$base_dn",
+  "CN=IT-Admins,OU=Groups,$base_dn",
+  "CN=Helpdesk,OU=Groups,$base_dn",
+];
+$isAllowed = false;
+if (is_array($memberOf) && isset($memberOf['count'])) {
+  for ($i = 0; $i < $memberOf['count']; $i++) {
+    foreach ($allowed_group_dns as $dn) {
+      if (strcasecmp($memberOf[$i], $dn) === 0) { $isAllowed = true; break 2; }
+    }
+  }
+}
+```
+
+### Verschachtelte Gruppen prüfen / Nested groups
+Optional: nutze die AD‑Matching‑Rule `1.2.840.113556.1.4.1941` für **rekursive Mitgliedschaften**:
+
+```php
+$targetGroupDn = "CN=IT-Admins,OU=Groups,$base_dn";
+$filter = "(&(sAMAccountName=" . ldap_escape($username, '', LDAP_ESCAPE_FILTER) . ")
+           (memberOf:1.2.840.113556.1.4.1941:=" . ldap_escape($targetGroupDn, '', LDAP_ESCAPE_FILTER) . "))";
+$sr = ldap_search($user_conn, $base_dn, $filter, ["dn"]);
+$isAllowedNested = $sr && ldap_count_entries($user_conn, $sr) > 0;
+```
+
+> **Fazit:** Nur die *definierten Gruppen* dürfen rein. Passe `allowed_group_dns` an deine OU/Groups‑Struktur an.
+
+
+---
+
+## 5) Funktionen / Features
+
+**Benutzer / Users**
+- Anlegen (`ad_user_create.php`) – initial deaktiviert, Passwort setzen via **unicodePwd**, OU‑Auswahl
+- Bearbeiten (`ad_user_edit.php`) – Mail, Department, SAM, GivenName, SN, etc.
+- Passwort **setzen/resetten** (`ad_user_password.php`, `ad_user_password_reset.php`)
+- Aktivieren/Deaktivieren (UAC) (`ad_user_toggle.php`)
+- **Verschieben** zwischen OUs (`ad_user_action.php` → `case 'move'` mit `ldap_rename()`)
+- Löschen (`ad_user_delete.php` oder `ad_user_action.php` → `case 'delete'`)
+
+**Gruppen / Groups**
+- Auflisten (AJAX) + Aktionen (`ad_groups.php`, `ad_groups_ajax.php`)
+- Mitglieder lesen/hinzufügen/entfernen (`ad_group_members.php`)
+- Erstellen (`create_group.php`), **Umbenennen/Löschen/Verschieben** (`ad_group_action.php`, `inc/rename_remove_group.php`)
+
+**OUs**
+- Explorer (`ou_verwalten.php`) + JSON‑Baum (`ad_ou_list.php`)
+- **Erstellen** (`create_ou.php`), **Umbenennen/Verschieben/Löschen** (`ou_verwalten.php` → `ldap_rename`, `ldap_delete`)
+
+**AJAX**
+- `ad_users_ajax.php`, `ad_groups_ajax.php`, `ad_group_members.php`, `ad_ou_list.php`
+
+---
+
+## 6) Screenshots (Empfehlung) / Screenshots (Recommended)
+
+Lege Bilder unter `docs/images/` ab und verlinke sie im README/HOWTO:
+- `login.png` – Loginmaske
+- `dashboard.png` – Start/Navigation
+- `users_list.png` – DataTable mit Aktionen
+- `user_move_modal.png` – Move‑Dialog + OU‑Picker
+- `groups_manage.png` – Mitglieder/Add/Remove
+- `ou_tree.png` – OU‑Explorer (Create/Rename/Move/Delete)
+- `password_reset.png` – PW‑Reset‑Dialog
+
+**Hinweis:** Dummy‑Daten verwenden (`example.local`, `Max.Mustermann`), sensible Infos schwärzen.
+
+---
+
+## 7) Sicherheit / Security Notes
+
+**Bereits vorhanden / Included:**
+- **LDAPS** (Port 636), TLS‑Optionen gesetzt
+- **AES‑256‑CBC** verschlüsseltes Passwort in `ldap_pass.enc` (Key via `LDAP_KEY`)
+- **Session‑Checks**, **CSRF** für kritische User‑Aktionen
+- `ldap_escape()` für Filter/DN
+
+**Empfohlen für Produktion / Recommended for production:**
+- TLS‑Validierung **STRICT/REQUIRED** (kein `NEVER`)
+- **RBAC** (Admin/Leiter/Helpdesk) statt nur Builtin‑Admins
+- **Audit‑Logs** (wer/was/wann), append‑only
+- Service‑Account **Least‑Privilege** & OU‑scoped Delegation
+- Rate‑Limiting/Brute‑Force‑Schutz auf Login
+
+---
+
+## 8) Troubleshooting
+
+| Problem | Ursache / Lösung |
+|---|---|
+| `Can't contact LDAP server` | Port 636 offen? Zertifikat/Firewall prüfen. |
+| Login schlägt fehl | DN/Passwort ok? Mitglied in erlaubter Gruppe(n)? |
+| OU‑Liste leer | Bind‑Rechte & Filter prüfen (`organizationalUnit`). |
+| `Constraint violation` beim PW | Passwort‑Policy / Format (UTF‑16LE, Quotes) prüfen. |
+| Move/Rename schlägt fehl | Ziel‑OU existiert? `ldap_rename` RDN korrekt escapet? |
+
+---
+
+## 9) Lizenz / License
+
+MIT

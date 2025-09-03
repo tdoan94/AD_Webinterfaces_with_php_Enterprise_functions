@@ -1,0 +1,13 @@
+neue funktion ad benutzer deaktivieren
+#session_systeme zur sicherheit das keiner php skripte ausführen kann ohne adminrechte.
+
+version 2.1
+#javascript ajax fenster für navigation lässt sich mit ESC drücken schließen 
+oder außerhalb des fenster klicken
+
+#passwort verschlüsselt nicht mehr klartext
+#strukturelle anpassungen code kürzer mit includes und require_once gemacht
+css code in separate dateien.
+
+angepasst auf abfragen für locker bis zu 50.000 benutzer erweitert super schnell
+mit suchfilter ergäntz
