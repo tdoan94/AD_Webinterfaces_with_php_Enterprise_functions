@@ -1,3 +1,11 @@
+WICHTIG aus Sicherheitsgründen habe ich folgende dateien entfernt bzw nicht hochgeladen:
+
+> **Hinweis / Note:** Dieses Repository enthält bewusst **keine Secrets**  
+> (z. B. `ldap_pass.enc`, `ldap_key.php`, Zertifikate/Keys).  
+> Für Tests ist eine **eigene AD/LDAPS-Umgebung** erforderlich (BYO-AD).  
+> Siehe **HOWTO_ldap_tool_v3.md**.
+
+
 neue funktion ad benutzer deaktivieren
 #session_systeme zur sicherheit das keiner php skripte ausführen kann ohne adminrechte.
 
@@ -11,3 +19,4 @@ css code in separate dateien.
 
 angepasst auf abfragen für locker bis zu 50.000 benutzer erweitert super schnell
 mit suchfilter ergäntz
+
