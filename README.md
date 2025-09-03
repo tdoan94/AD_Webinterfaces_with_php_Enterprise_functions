@@ -16,6 +16,8 @@ Helpdesk/Leiter können typische AD-Aufgaben **ohne MMC** erledigen. (Siehe auch
 - **Performance**: Skalierung getestet bis **50.000 Benutzer** (AJAX/DataTables, Filter/Suche)
 - **UX**: Modale Dialoge (ESC oder Klick außerhalb schließt), saubere Navigation, CSS in separaten Dateien
 
+- Screenshots:** [doc/img/](doc/img/)
+
 ---
 
 ## 🔐 Sicherheits-Hinweis (keine Secrets im Repo)
