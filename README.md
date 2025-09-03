@@ -61,12 +61,6 @@ Lege PNGs in `docs/images/` ab und binde sie hier ein, z. B.:
 ![OU-Baum](docs/images/ou_tree.png)
 ```
 
----
-
-## 🧪 Demo-Modus (optional)
-Ohne AD testen? Setze `DEMO_MODE=true` und liefere Demo-Daten über `docs/fixtures/users_demo.json`. Schreiboperationen sind im Demo-Modus zu deaktivieren.
-
----
 
 ## 🛡️ Qualität & Sicherheit (Highlights)
 - Sessions & Rechteprüfung auf allen Admin-Seiten (kein Ausführen ohne Login/Adminrechte)
