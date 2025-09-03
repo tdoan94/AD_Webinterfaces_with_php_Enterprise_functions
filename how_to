@@ -8,13 +8,12 @@
 ## Inhaltsverzeichnis / Table of Contents
 1. Voraussetzungen / Prerequisites  
 2. Projektstruktur / Project Structure  
-3. Installation (Docker & Manuell) / Setup (Docker & Manual)  
-4. Login & Zugriff / Login & Access (Group-Based) ✅  
-5. Funktionen / Features  
-6. Screenshots (Empfehlung) / Screenshots (Recommended)  
-7. Sicherheit / Security Notes  
-8. Troubleshooting  
-9. Lizenz / License
+3. Login & Zugriff / Login & Access (Group-Based) ✅  
+4. Funktionen / Features  
+5. Screenshots (Empfehlung) / Screenshots (Recommended)  
+6. Sicherheit / Security Notes  
+7. Troubleshooting  
+8. Lizenz / License
 
 ---
 
@@ -28,10 +27,6 @@
 - Docker (empfohlen) oder LAMP/LEMP mit **PHP 8** und **php-ldap**
 - Git
 
-**Sicherheit**
-- Keine echten Produktivdaten verwenden (Nutze `example.local`, Fake-IPs, Dummy-User)
-
----
 
 ## 2) Projektstruktur / Project Structure
 
@@ -221,3 +216,4 @@ Lege Bilder unter `docs/images/` ab und verlinke sie im README/HOWTO:
 ## 9) Lizenz / License
 
 MIT
+
